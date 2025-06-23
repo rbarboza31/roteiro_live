@@ -2,27 +2,41 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Roteiro da Live</title>
+  <title>Roteiro da Live Avançado</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <div id="timer" style="margin-bottom: 10px; font-size: 18px; color: #00ffcc;">
+  <div id="theme-selector" title="Escolha o tema do visual">
+    Tema:
+    <select id="theme-select" aria-label="Selecionar tema">
+      <option value="pastel-blue">Azul Pastel</option>
+      <option value="pastel-green">Verde Pastel</option>
+      <option value="pastel-pink">Rosa Pastel</option>
+      <option value="pastel-yellow">Amarelo Pastel</option>
+      <option value="pastel-purple">Roxo Pastel</option>
+      <option value="pastel-orange">Laranja Pastel</option>
+      <option value="white">Fundo Branco</option>
+      <option value="dark">Fundo Preto</option>
+    </select>
+  </div>
+
+  <div id="timer" title="Tempo restante da seção e total da live">
     ⏱️ Seção: <span id="section-time">--:--</span> |
     🧭 Total: <span id="total-time">00:00</span>
   </div>
 
-  <div style="margin-bottom: 20px;">
-    <button id="btn-back">⬅️</button>
-    <button id="btn-play-pause">▶️</button>
-    <button id="btn-forward">➡️</button>
-    <button id="btn-reset">🔄 Reset Tempo</button>
-    <button id="btn-save">💾 Salvar Roteiro</button>
+  <div id="controls" title="Controles da live">
+    <button id="btn-back" title="Voltar para a seção anterior">⬅️</button>
+    <button id="btn-play-pause" title="Iniciar/Pausar">▶️</button>
+    <button id="btn-forward" title="Avançar para a próxima seção">➡️</button>
+    <button id="btn-reset" title="Reiniciar o tempo da seção atual">🔄 Reset Tempo</button>
+    <button id="btn-save" title="Salvar roteiro editado como JSON">💾 Salvar Roteiro</button>
   </div>
 
   <div id="container">
     <div id="progress-bar"></div>
-    <div id="script"><!-- conteúdo gerado pelo JS --></div>
+    <div id="script"><!-- Conteúdo gerado pelo JS --></div>
   </div>
 
   <script src="script.js"></script>
