@@ -1,3 +1,4 @@
+// Dados do roteiro
 const scriptData = [
   {
     title: "Abertura", time: 3,
@@ -37,81 +38,59 @@ const scriptData = [
   }
 ];
 
+// Cores por seção
 const colors = [
   "#2e7d32", "#388e3c", "#43a047", "#4caf50", "#66bb6a",
   "#5ea765", "#518c58", "#3c6b42", "#2c5333"
 ];
 
+// Seletores
 const scriptContainer = document.getElementById('script');
 const progressBar = document.getElementById('progress-bar');
-
 const sectionTimeDisplay = document.getElementById('section-time');
 const totalTimeDisplay = document.getElementById('total-time');
 
+// Estado
 let sections = [];
 let currentIndex = 0;
-let isPaused = false;
-let timeoutId;
+let isPaused = true;
 let intervalTimer;
 let sectionSecondsRemaining = 0;
 let totalSecondsElapsed = 0;
 let elapsed = 0;
 
-// Cria as seções
-scriptData.forEach((item, index) => {
-  const div = document.createElement('div');
-  div.className = 'section';
-  div.dataset.index = index;
+// Criar visual das seções
+function createSectionElements() {
+  scriptData.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'section';
+    div.dataset.index = index;
 
-  const title = document.createElement('div');
-  const timeSpan = document.createElement('span');
-  timeSpan.className = 'time-editable';
-  timeSpan.innerText = `(${item.time} min)`;
-  timeSpan.onclick = () => editTime(index, timeSpan);
+    const title = document.createElement('div');
+    title.innerHTML = `<strong>${item.title}</strong>`;
 
-  title.innerHTML = `<strong>${item.title}</strong>`;
-  title.appendChild(timeSpan);
-  div.appendChild(title);
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'time-editable';
+    timeSpan.innerText = ` (${item.time} min)`;
+    title.appendChild(timeSpan);
 
-  const loadingBar = document.createElement('div');
-  loadingBar.className = 'loading-bar';
-  div.appendChild(loadingBar);
+    div.appendChild(title);
 
-  const sub = document.createElement('div');
-  sub.className = 'subtopics';
-  sub.innerHTML = item.topics.map(t => `• ${t}`).join("<br>");
-  div.appendChild(sub);
+    const loadingBar = document.createElement('div');
+    loadingBar.className = 'loading-bar';
+    div.appendChild(loadingBar);
 
-  scriptContainer.appendChild(div);
-  sections.push({ element: div, loadingBar, duration: item.time, timeSpan });
-});
+    const sub = document.createElement('div');
+    sub.className = 'subtopics';
+    sub.innerHTML = item.topics.map(t => `• ${t}`).join("<br>");
+    div.appendChild(sub);
 
-function editTime(index, timeSpan) {
-  const input = document.createElement('input');
-  input.type = 'number';
-  input.className = 'time-input';
-  input.value = scriptData[index].time;
-  timeSpan.replaceWith(input);
-  input.focus();
-
-  input.onkeydown = (e) => {
-    if (e.key === 'Enter') {
-      const newTime = parseInt(input.value);
-      if (!isNaN(newTime) && newTime > 0) {
-        scriptData[index].time = newTime;
-        sections[index].duration = newTime;
-        elapsed = scriptData.slice(0, currentIndex).reduce((s, i) => s + i.time, 0);
-        const newSpan = document.createElement('span');
-        newSpan.className = 'time-editable';
-        newSpan.innerText = `(${newTime} min)`;
-        newSpan.onclick = () => editTime(index, newSpan);
-        input.replaceWith(newSpan);
-        sections[index].timeSpan = newSpan;
-      }
-    }
-  };
+    scriptContainer.appendChild(div);
+    sections.push({ element: div, loadingBar, duration: item.time });
+  });
 }
 
+// Atualiza os timers
 function updateTimers() {
   const min = String(Math.floor(sectionSecondsRemaining / 60)).padStart(2, '0');
   const sec = String(sectionSecondsRemaining % 60).padStart(2, '0');
@@ -122,10 +101,9 @@ function updateTimers() {
   totalTimeDisplay.textContent = `${tMin}:${tSec}`;
 }
 
+// Inicia ou reinicia uma seção
 function startPlayer(index = 0) {
-  clearTimeout(timeoutId);
   clearInterval(intervalTimer);
-
   sections.forEach((s, i) => {
     s.element.classList.remove('active');
     s.loadingBar.style.width = '0%';
@@ -169,15 +147,18 @@ function startPlayer(index = 0) {
   }, 1000);
 }
 
-function togglePause() {
-  isPaused = !isPaused;
-}
-
+// Botões
 function goBack() {
   if (currentIndex > 0) {
     elapsed -= scriptData[currentIndex - 1].time;
     startPlayer(currentIndex - 1);
   }
+}
+
+function togglePause() {
+  isPaused = !isPaused;
+  const btn = document.getElementById('btn-play-pause');
+  btn.innerText = isPaused ? '▶️' : '⏸️';
 }
 
 function goForward() {
@@ -187,4 +168,22 @@ function goForward() {
   }
 }
 
+function resetTime() {
+  if (!sections[currentIndex]) return;
+  clearInterval(intervalTimer);
+  elapsed = scriptData.slice(0, currentIndex).reduce((s, i) => s + i.time, 0);
+  startPlayer(currentIndex);
+  isPaused = true;
+  document.getElementById('btn-play-pause').innerText = '▶️';
+}
+
+// Associar eventos aos botões
+document.getElementById('btn-back').onclick = goBack;
+document.getElementById('btn-play-pause').onclick = togglePause;
+document.getElementById('btn-forward').onclick = goForward;
+document.getElementById('btn-reset').onclick = resetTime;
+
+// Inicializar tudo
+createSectionElements();
 startPlayer();
+togglePause(); // começa pausado
