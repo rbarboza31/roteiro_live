@@ -7,26 +7,24 @@
 </head>
 <body>
 
-  <div id="timer" style="margin-top: 20px; font-size: 18px; color: #00ffcc;">
+  <div id="timer" style="margin-bottom: 10px; font-size: 18px; color: #00ffcc;">
     ⏱️ Seção: <span id="section-time">--:--</span> |
     🧭 Total: <span id="total-time">00:00</span>
   </div>
 
-  <div style="margin: 10px;">
+  <div style="margin-bottom: 20px;">
     <button id="btn-back">⬅️</button>
     <button id="btn-play-pause">▶️</button>
     <button id="btn-forward">➡️</button>
     <button id="btn-reset">🔄 Reset Tempo</button>
+    <button id="btn-save">💾 Salvar Roteiro</button>
   </div>
 
   <div id="container">
     <div id="progress-bar"></div>
-    <div id="script">
-      <!-- Seções aparecem aqui via JS -->
-    </div>
+    <div id="script"><!-- conteúdo gerado pelo JS --></div>
   </div>
 
   <script src="script.js"></script>
-
 </body>
 </html>
