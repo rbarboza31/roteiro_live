@@ -1,12 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Roteiro da Live</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
 <div id="timer" style="margin-top: 20px; font-size: 18px; color: #00ffcc;">
   ⏱️ Seção: <span id="section-time">--:--</span> |
   🧭 Total: <span id="total-time">00:00</span>
 </div>
 
 <div style="margin: 10px;">
-  <button onclick="goBack()">⬅️</button>
-  <button onclick="togglePause()">⏸️</button>
-  <button onclick="goForward()">➡️</button>
+  <button id="btn-back">⬅️</button>
+  <button id="btn-play-pause">▶️</button>
+  <button id="btn-forward">➡️</button>
+  <button id="btn-reset">🔄 Reset Tempo</button>
 </div>
 
 <div id="container">
@@ -15,3 +25,7 @@
     <!-- Seções aparecem aqui -->
   </div>
 </div>
+
+<script src="script.js"></script>
+</body>
+</html>
