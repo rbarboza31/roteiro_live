@@ -1,92 +1,277 @@
-body {
-  font-family: sans-serif;
-  margin: 20px;
-  background: #111;
-  color: #eee;
+/* Reset básico */
+* {
+  box-sizing: border-box;
 }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 20px;
+  background: var(--bg);
+  color: var(--text-color);
+  transition: background 0.5s, color 0.5s;
+  user-select: none;
+}
+:root {
+  --bg: #f0f8ff;
+  --text-color: #222;
+  --accent: #6ca0dc;
+  --accent-light: #9ec3f7;
+  --progress-bg: #d0e4ff;
+  --progress-bar: #6ca0dc;
+  --button-bg: #e3eaf9;
+  --button-hover: #c4d1f2;
+}
+
+/* Temas */
+body.pastel-blue {
+  --bg: #f0f8ff;
+  --text-color: #222;
+  --accent: #6ca0dc;
+  --accent-light: #9ec3f7;
+  --progress-bg: #d0e4ff;
+  --progress-bar: #6ca0dc;
+  --button-bg: #e3eaf9;
+  --button-hover: #c4d1f2;
+}
+body.pastel-green {
+  --bg: #e6f4ea;
+  --text-color: #224422;
+  --accent: #6baf69;
+  --accent-light: #a6d5a8;
+  --progress-bg: #c6e6b9;
+  --progress-bar: #4e9951;
+  --button-bg: #d4e9d4;
+  --button-hover: #a8cba1;
+}
+body.pastel-pink {
+  --bg: #fde8ed;
+  --text-color: #62202c;
+  --accent: #db678f;
+  --accent-light: #f1b1c0;
+  --progress-bg: #f4c7d1;
+  --progress-bar: #db678f;
+  --button-bg: #f9d7e2;
+  --button-hover: #e1abc2;
+}
+body.pastel-yellow {
+  --bg: #fffbea;
+  --text-color: #5a4e1a;
+  --accent: #f2ce54;
+  --accent-light: #f7e8a1;
+  --progress-bg: #f7e8a1;
+  --progress-bar: #d6ba28;
+  --button-bg: #f9f4c6;
+  --button-hover: #e3db74;
+}
+body.pastel-purple {
+  --bg: #f3ecfc;
+  --text-color: #3b2d5a;
+  --accent: #9361a9;
+  --accent-light: #bca4ce;
+  --progress-bg: #bca4ce;
+  --progress-bar: #7e4e99;
+  --button-bg: #d4c7e5;
+  --button-hover: #ad95d0;
+}
+body.pastel-orange {
+  --bg: #fff4e7;
+  --text-color: #5a3a11;
+  --accent: #f2a24f;
+  --accent-light: #f8c685;
+  --progress-bg: #f8c685;
+  --progress-bar: #cc8430;
+  --button-bg: #f9deb4;
+  --button-hover: #e5b56e;
+}
+body.white {
+  --bg: #fff;
+  --text-color: #222;
+  --accent: #007acc;
+  --accent-light: #5aaaff;
+  --progress-bg: #d6eaff;
+  --progress-bar: #007acc;
+  --button-bg: #e6f0fc;
+  --button-hover: #c0d7ff;
+}
+body.dark {
+  --bg: #121212;
+  --text-color: #eee;
+  --accent: #4caf50;
+  --accent-light: #81c784;
+  --progress-bg: #263238;
+  --progress-bar: #4caf50;
+  --button-bg: #1e2a23;
+  --button-hover: #3b5249;
+}
+
+#theme-selector {
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: var(--text-color);
+}
+#theme-select {
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--button-bg);
+  background: var(--bg);
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+#timer {
+  font-size: 18px;
+  margin-bottom: 15px;
+  user-select: text;
+}
+
+#controls {
+  position: sticky;
+  top: 10px;
+  background: var(--accent-light);
+  padding: 10px;
+  border-radius: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  z-index: 10;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+#controls button {
+  background: var(--button-bg);
+  border: 1px solid var(--button-hover);
+  color: var(--text-color);
+  font-size: 20px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+  cursor: pointer;
+  user-select: none;
+}
+#controls button:hover {
+  background: var(--button-hover);
+}
+
 #container {
   display: flex;
   margin-top: 20px;
+  gap: 20px;
+  user-select: text;
 }
+
 #progress-bar {
-  width: 10px;
-  background: #00ffcc;
-  transition: height 1s linear;
+  width: 12px;
+  background: var(--progress-bg);
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
 }
+#progress-bar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--progress-bar);
+  height: 0%;
+  transition: height 0.5s linear;
+  border-radius: 10px 10px 0 0;
+}
+
 #script {
   flex: 1;
-  margin-left: 20px;
+  overflow-y: auto;
+  max-height: 80vh;
 }
+
 .section {
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  transition: background 0.5s;
+  background: transparent;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  position: relative;
+  user-select: text;
+  transition: background-color 0.4s ease;
 }
+
 .section.active {
-  outline: 2px solid #00ffcc;
+  background: var(--accent-light);
+  box-shadow: 0 0 8px var(--accent);
 }
+
 .loading-bar {
-  height: 6px;
-  background: white;
+  height: 5px;
+  background: var(--accent);
   width: 0%;
-  transition: width 1s linear;
-  margin-top: 4px;
-  border-radius: 4px;
+  border-radius: 8px;
+  margin-top: 8px;
+  transition: width 0.3s linear;
 }
+
+.editable-title,
+.time-input,
 .subtopics textarea {
-  width: 100%;
-  margin-top: 4px;
-  background: #222;
-  color: #eee;
-  border: 1px solid #444;
-  padding: 6px;
-  border-radius: 4px;
-  resize: vertical;
-  font-size: 14px;
-  font-family: sans-serif;
-}
-.editable-title, .time-input {
-  background: #111; /* mesma cor do fundo */
-  color: #eee;
-  border: 1px solid #333; /* mais suave */
-  padding: 6px 10px;
-  margin-right: 10px;
-  border-radius: 4px;
-  font-size: 16px;
-  font-family: sans-serif;
-  width: 300px;
-  display: inline-block;
+  background: transparent !important;
+  border: none !important;
+  padding: 0;
+  margin: 0 0 6px 0;
+  color: var(--text-color);
+  font-size: 18px;
+  font-weight: 600;
+  outline: none;
+  resize: none;
+  width: auto;
+  cursor: text;
+  user-select: text;
 }
 
 .time-input {
-  width: 70px;
-  text-align: center;
+  font-weight: normal;
+  width: 50px;
+  font-size: 16px;
+  margin-left: 10px;
+  color: var(--accent);
 }
 
 .subtopics textarea {
-  width: 100%;
+  font-weight: normal;
+  font-size: 15px;
+  margin-left: 20px;
   margin-top: 4px;
-  background: #111; /* mesma cor do fundo */
-  color: #eee;
-  border: 1px solid #333; /* mais suave */
-  padding: 6px;
-  border-radius: 4px;
-  resize: vertical;
-  font-size: 14px;
-  font-family: sans-serif;
+  width: 100%;
+  line-height: 1.3;
 }
 
-button {
-  margin-right: 5px;
-  background: #222;
-  color: #eee;
-  border: 1px solid #444;
-  border-radius: 4px;
-  padding: 6px 10px;
+button.add-topic,
+button.add-subtopic,
+button.remove-topic,
+button.remove-subtopic {
+  background: var(--button-bg);
+  border: 1px solid var(--button-hover);
+  color: var(--text-color);
+  font-size: 14px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-left: 8px;
   cursor: pointer;
-  font-size: 16px;
+  user-select: none;
+  transition: background 0.3s ease;
 }
-button:hover {
-  background: #333;
+
+button.add-topic:hover,
+button.add-subtopic:hover,
+button.remove-topic:hover,
+button.remove-subtopic:hover {
+  background: var(--button-hover);
 }
+
+/* Alinhar botões inline com títulos */
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topic-row {
+  display: flex;
