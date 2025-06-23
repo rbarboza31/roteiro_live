@@ -47,9 +47,9 @@ body {
   font-family: sans-serif;
 }
 .editable-title, .time-input {
-  background: #222;
+  background: #111; /* mesma cor do fundo */
   color: #eee;
-  border: 1px solid #444;
+  border: 1px solid #333; /* mais suave */
   padding: 6px 10px;
   margin-right: 10px;
   border-radius: 4px;
@@ -58,10 +58,25 @@ body {
   width: 300px;
   display: inline-block;
 }
+
 .time-input {
   width: 70px;
   text-align: center;
 }
+
+.subtopics textarea {
+  width: 100%;
+  margin-top: 4px;
+  background: #111; /* mesma cor do fundo */
+  color: #eee;
+  border: 1px solid #333; /* mais suave */
+  padding: 6px;
+  border-radius: 4px;
+  resize: vertical;
+  font-size: 14px;
+  font-family: sans-serif;
+}
+
 button {
   margin-right: 5px;
   background: #222;
