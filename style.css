@@ -1,403 +1,304 @@
-:root {
-  --color-bg: #111;
-  --color-text: #eee;
-  --color-accent: #a2d5c6;
-  --color-progress: #00ffcc;
-  --color-progress-bg: #004d40;
+// Dados iniciais do roteiro
+let scriptData = [
+  { title: "Abertura", time: 3, topics: ["Apresentação pessoal", "Objetivo da live", "Incentivo à participação"] },
+  { title: "Por que treinar sua equipe?", time: 4, topics: ["Problemas comuns nas oficinas", "O custo de não treinar", "Funcionário vs profissional"] },
+  { title: "Perfil da equipe ideal", time: 5, topics: ["Postura, técnica e compromisso", "Competências mínimas", "Como identificar talentos"] },
+  { title: "Treinamento na prática: como começar", time: 8, topics: ["Diagnóstico da equipe atual", "Tipos de treinamento", "Individualizar o processo"] },
+  { title: "Métodos de Treinamento", time: 8, topics: ["Interno vs externo", "Treinamento prático", "Aprendizado contínuo"] },
+  { title: "Ferramentas e materiais", time: 5, topics: ["Materiais de apoio", "Software de gestão", "Como medir resultados"] },
+  { title: "Erros comuns ao tentar treinar", time: 4, topics: ["Ensinar tudo de uma vez", "Não dar o exemplo", "Não acompanhar o desenvolvimento"] },
+  { title: "Estudos de caso e experiências", time: 5, topics: ["Histórias reais", "O que funcionou", "Resultados práticos"] },
+  { title: "Encerramento", time: 3, topics: ["Resumo e reforço", "Dica prática final", "Chamada para ação"] }
+];
+
+const scriptContainer = document.getElementById('script');
+const progressBar = document.getElementById('progress-bar');
+const progressBarFill = progressBar.querySelector('::before'); // not directly accessible, will update via style
+const sectionTimeDisplay = document.getElementById('section-time');
+const totalTimeDisplay = document.getElementById('total-time');
+const themeSelect = document.getElementById('theme-select');
+const controlButtons = document.getElementById('control-buttons');
+const progressContainer = document.getElementById('progress-container');
+
+const colors = ["#2e7d32", "#388e3c", "#43a047", "#4caf50", "#66bb6a", "#5ea765", "#518c58", "#3c6b42", "#2c5333"];
+
+let sections = [];
+let currentIndex = 0;
+let isPaused = true;
+let intervalTimer;
+let sectionSecondsRemaining = 0;
+let totalSecondsElapsed = 0;
+let elapsed = 0;
+
+// --- Funções --- //
+
+function createSectionElements() {
+  scriptContainer.innerHTML = '';
+  sections = [];
+
+  scriptData.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'section';
+    div.dataset.index = index;
+
+    // Título editável - input
+    const titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.className = 'editable-title';
+    titleInput.value = item.title;
+    titleInput.title = 'Título da seção (clique para editar)';
+
+    // Tempo editável - input
+    const timeInput = document.createElement('input');
+    timeInput.type = 'number';
+    timeInput.min = 1;
+    timeInput.className = 'time-input';
+    timeInput.value = item.time;
+    timeInput.title = 'Tempo da seção em minutos';
+
+    // Label min ao lado
+    const timeLabel = document.createElement('span');
+    timeLabel.className = 'time-label';
+    timeLabel.textContent = 'min';
+
+    // Botões adicionar/remover seção
+    const btnAddSection = document.createElement('button');
+    btnAddSection.className = 'btn-add-section';
+    btnAddSection.title = 'Adicionar nova seção abaixo';
+    btnAddSection.textContent = '+';
+    btnAddSection.onclick = () => {
+      addSection(index + 1);
+    };
+
+    const btnRemoveSection = document.createElement('button');
+    btnRemoveSection.className = 'btn-remove-section';
+    btnRemoveSection.title = 'Remover esta seção';
+    btnRemoveSection.textContent = '−';
+    btnRemoveSection.onclick = () => {
+      removeSection(index);
+    };
+
+    // Header da seção com título, tempo e botões
+    const headerDiv = document.createElement('div');
+    headerDiv.style.display = 'flex';
+    headerDiv.style.alignItems = 'center';
+    headerDiv.style.marginBottom = '5px';
+
+    headerDiv.appendChild(titleInput);
+    headerDiv.appendChild(timeInput);
+    headerDiv.appendChild(timeLabel);
+    headerDiv.appendChild(btnAddSection);
+    headerDiv.appendChild(btnRemoveSection);
+
+    div.appendChild(headerDiv);
+
+    const loadingBar = document.createElement('div');
+    loadingBar.className = 'loading-bar';
+    div.appendChild(loadingBar);
+
+    // Subtópicos com botões
+    const sub = document.createElement('div');
+    sub.className = 'subtopics';
+
+    item.topics.forEach((topicText, i) => {
+      addTopicInput(sub, topicText, index, i);
+    });
+
+    // Botão adicionar tópico
+    const btnAddTopic = document.createElement('button');
+    btnAddTopic.className = 'btn-add-topic';
+    btnAddTopic.title = 'Adicionar tópico nesta seção';
+    btnAddTopic.textContent = '+ Adicionar tópico';
+    btnAddTopic.onclick = () => {
+      addTopicInput(sub, '', index);
+    };
+
+    sub.appendChild(btnAddTopic);
+    div.appendChild(sub);
+
+    scriptContainer.appendChild(div);
+
+    sections.push({ element: div, loadingBar, durationInput: timeInput, titleInput, subtopics: sub });
+  });
 }
 
-body {
-  font-family: 'Roboto', sans-serif;
-  margin: 20px;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  transition: background-color 0.5s, color 0.5s;
+function addTopicInput(container, text, sectionIndex, topicIndex) {
+  const row = document.createElement('div');
+  row.className = 'topic-row';
+
+  const textarea = document.createElement('textarea');
+  textarea.rows = 2;
+  textarea.value = text;
+  textarea.title = 'Editar tópico (clique para editar)';
+  textarea.style.flexGrow = '1';
+
+  const btnRemoveTopic = document.createElement('button');
+  btnRemoveTopic.className = 'btn-remove-topic';
+  btnRemoveTopic.title = 'Remover este tópico';
+  btnRemoveTopic.textContent = '−';
+  btnRemoveTopic.onclick = () => {
+    container.removeChild(row);
+  };
+
+  row.appendChild(textarea);
+  row.appendChild(btnRemoveTopic);
+  container.insertBefore(row, container.querySelector('.btn-add-topic'));
 }
 
-#theme-selector {
-  margin-bottom: 15px;
+function addSection(index) {
+  scriptData.splice(index, 0, { title: "Nova Seção", time: 3, topics: ["Novo tópico"] });
+  createSectionElements();
+  startPlayer(currentIndex);
 }
 
-#theme-select {
-  background: var(--color-bg);
-  color: var(--color-text);
-  border: 1px solid #555;
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 14px;
-  cursor: pointer;
+function removeSection(index) {
+  if (scriptData.length === 1) {
+    alert("Não é possível remover a última seção.");
+    return;
+  }
+  if (confirm("Tem certeza que quer remover esta seção?")) {
+    scriptData.splice(index, 1);
+    createSectionElements();
+    if(currentIndex >= scriptData.length) currentIndex = scriptData.length -1;
+    startPlayer(currentIndex);
+  }
 }
 
-/* Container do progresso e botões fixos */
+function updateTimers() {
+  const min = String(Math.floor(sectionSecondsRemaining / 60)).padStart(2, '0');
+  const sec = String(sectionSecondsRemaining % 60).padStart(2, '0');
+  // Como no layout atual não temos exibição do tempo (se quiser podemos colocar), deixo comentado
+  // sectionTimeDisplay.textContent = `${min}:${sec}`;
 
-#container {
-  display: flex;
-  gap: 20px;
+  const total = scriptData.reduce((sum, s) => sum + (parseInt(s.time) || 0), 0);
+  const elapsedTotal = scriptData
+    .slice(0, currentIndex)
+    .reduce((sum, s) => sum + (parseInt(s.time) || 0), 0);
+
+  const percent = (elapsedTotal + ((parseInt(scriptData[currentIndex].time) || 0) - sectionSecondsRemaining/60)) / total * 100;
+
+  // Atualiza barra vertical preenchida
+  const progressFill = document.querySelector('#progress-bar::before');
+  // Não dá para acessar ::before direto, então atualizamos via style do elemento mesmo:
+  progressBar.style.setProperty('--fill-height', percent + '%');
+  progressBar.style.height = '400px';
+
+  // Atualiza altura da barra preenchida pelo JS (como não conseguimos com ::before, vamos mudar o método:)
+  progressBar.style.background = `linear-gradient(to top, var(--color-progress) ${percent}%, var(--color-progress-bg) ${percent}%)`;
+
+  // Atualiza a barra de loading horizontal da seção ativa
+  sections.forEach((s, i) => {
+    if (i === currentIndex) {
+      const totalSec = (parseInt(scriptData[i].time) || 1) * 60;
+      const passed = totalSec - sectionSecondsRemaining;
+      const widthPercent = (passed / totalSec) * 100;
+      s.loadingBar.style.width = widthPercent + '%';
+    } else {
+      s.loadingBar.style.width = '0%';
+    }
+  });
 }
 
-#progress-container {
-  position: relative;
-  width: 60px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+function startPlayer(index = 0) {
+  clearInterval(intervalTimer);
+  sections.forEach((s, i) => {
+    s.element.classList.remove('active');
+    s.element.style.backgroundColor = '';
+  });
+
+  if (index >= sections.length) return;
+
+  currentIndex = index;
+  const { element } = sections[index];
+  element.classList.add('active');
+
+  sectionSecondsRemaining = (parseInt(scriptData[index].time) || 1) * 60;
+
+  updateTimers();
+
+  intervalTimer = setInterval(() => {
+    if (!isPaused) {
+      sectionSecondsRemaining--;
+      if (sectionSecondsRemaining <= 0) {
+        clearInterval(intervalTimer);
+        startPlayer(currentIndex + 1);
+      }
+      updateTimers();
+    }
+  }, 1000);
 }
 
-#progress-bar {
-  width: 10px;
-  height: 400px;
-  background: var(--color-progress-bg);
-  border-radius: 10px;
-  position: relative;
-  overflow: hidden;
+function goBack() {
+  if (currentIndex > 0) {
+    startPlayer(currentIndex - 1);
+  }
 }
 
-#progress-bar::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 0%;
-  background-color: var(--color-progress);
-  transition: height 0.3s linear;
-  border-radius: 10px 10px 0 0;
+function togglePause() {
+  isPaused = !isPaused;
+  const btn = document.getElementById('btn-play-pause');
+  btn.innerText = isPaused ? '▶️' : '⏸️';
 }
 
-/* Botões de controle fixos e alinhados à barra */
-
-#control-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 15px;
-  position: sticky;
-  top: 10px;
-  align-items: center;
+function goForward() {
+  if (currentIndex < sections.length - 1) {
+    startPlayer(currentIndex + 1);
+  }
 }
 
-#control-buttons button {
-  background: var(--color-bg);
-  border: none;
-  color: var(--color-text);
-  font-size: 20px;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
-  transition: background-color 0.2s;
-  width: 44px;
-  height: 38px;
+function resetTime() {
+  clearInterval(intervalTimer);
+  startPlayer(currentIndex);
+  isPaused = true;
+  document.getElementById('btn-play-pause').innerText = '▶️';
 }
 
-#control-buttons button:hover {
-  background-color: var(--color-progress);
-  color: #000;
-  font-weight: bold;
+function saveScriptAsJSON() {
+  // Atualiza scriptData com valores editados
+  sections.forEach((s, i) => {
+    scriptData[i].title = s.titleInput.value.trim() || 'Sem título';
+    scriptData[i].time = parseInt(s.durationInput.value) || 1;
+    // Atualiza tópicos
+    const textareas = s.subtopics.querySelectorAll('textarea');
+    const topics = [];
+    textareas.forEach(t => {
+      if(t.value.trim() !== '') topics.push(t.value.trim());
+    });
+    scriptData[i].topics = topics;
+  });
+  const blob = new Blob([JSON.stringify(scriptData, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "roteiro_live.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
-#total-time-display {
-  margin-top: 10px;
-  font-weight: 700;
-  font-size: 14px;
-  user-select: none;
+// Tema
+
+function applyTheme(theme) {
+  document.body.className = theme;
 }
 
-/* Script e seções */
+themeSelect.onchange = () => {
+  applyTheme(themeSelect.value);
+};
 
-#script {
-  flex: 1;
-  max-width: 800px;
-  overflow-y: auto;
-}
+// Inicia tema padrão
+applyTheme(themeSelect.value);
 
-/* Cada seção com contorno fininho */
+// Liga botões
+document.getElementById('btn-back').onclick = goBack;
+document.getElementById('btn-play-pause').onclick = togglePause;
+document.getElementById('btn-forward').onclick = goForward;
+document.getElementById('btn-reset').onclick = resetTime;
+document.getElementById('btn-save').onclick = saveScriptAsJSON;
 
-.section {
-  margin-bottom: 20px;
-  padding: 10px 10px 10px 10px;
-  border-bottom: 1px solid rgba(255,255,255,0.15);
-  border-radius: 6px;
-  transition: background-color 0.4s;
-  position: relative;
-}
+// Inicia
 
-/* Fundo da seção ativa */
-
-.section.active {
-  background-color: var(--color-progress-bg);
-  color: var(--color-text);
-  box-shadow: 0 0 12px var(--color-progress);
-}
-
-/* Inputs invisíveis estilo Google Forms */
-
-.editable-title {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: inherit;
-  font-size: 20px;
-  font-weight: 600;
-  margin: 4px 0 0 0;
-  width: auto;
-  max-width: 80%;
-  cursor: text;
-  user-select: text;
-  display: block;
-}
-
-/* Tempo acima do título */
-
-.time-input {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: inherit;
-  font-size: 16px;
-  font-weight: 700;
-  width: 50px;
-  text-align: right;
-  cursor: text;
-  user-select: text;
-  margin-bottom: 6px;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-/* Label min ao lado do input de tempo */
-
-.time-label {
-  display: inline-block;
-  color: var(--color-text);
-  font-weight: 500;
-  font-size: 14px;
-  margin-left: 5px;
-  user-select: none;
-}
-
-/* Subtópicos (textarea invisível) */
-
-.subtopics textarea {
-  width: 100%;
-  resize: vertical;
-  min-height: 40px;
-  margin-top: 6px;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: inherit;
-  font-size: 16px;
-  font-weight: 400;
-  cursor: text;
-  user-select: text;
-  padding-left: 32px;
-  position: relative;
-}
-
-/* Linha de subtópico com botão remover à esquerda */
-
-.topic-row {
-  display: flex;
-  align-items: center;
-  margin-top: 6px;
-  position: relative;
-}
-
-/* Botão remover subtópico menor à esquerda */
-
-.btn-remove-topic {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-  color: var(--color-progress);
-  font-weight: bold;
-  user-select: none;
-  transition: color 0.2s;
-  margin-right: 8px;
-  width: 26px;
-  height: 26px;
-  line-height: 22px;
-  text-align: center;
-}
-
-.btn-remove-topic:hover {
-  color: #fff;
-}
-
-/* Botões para adicionar/remover tópicos e seções */
-
-.btn-add-topic,
-.btn-remove-section,
-.btn-add-section {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-  color: var(--color-progress);
-  font-weight: bold;
-  user-select: none;
-  transition: color 0.2s;
-  margin-top: 10px;
-  display: inline-block;
-}
-
-.btn-add-topic:hover,
-.btn-remove-section:hover,
-.btn-add-section:hover {
-  color: #fff;
-}
-
-.subtopics {
-  margin-top: 10px;
-}
-
-/* Tooltip básico */
-
-[title] {
-  position: relative;
-}
-
-[title]:hover::after {
-  content: attr(title);
-  position: absolute;
-  background: #333;
-  color: #eee;
-  padding: 4px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-  top: 100%;
-  left: 0;
-  margin-top: 3px;
-  font-size: 12px;
-  pointer-events: none;
-  z-index: 10;
-}
-
-/* Temas pastel e fundo */
-
-body.pastel1 {
-  --color-bg: #e6f2f0;
-  --color-text: #145d50;
-  --color-progress: #a2d5c6;
-  --color-progress-bg: #3e8e7e;
-}
-
-body.pastel2 {
-  --color-bg: #ffe6f0;
-  --color-text: #7d1449;
-  --color-progress: #e497ba;
-  --color-progress-bg: #b35373;
-}
-
-body.pastel3 {
-  --color-bg: #e6f0ff;
-  --color-text: #14366d;
-  --color-progress: #87a7ff;
-  --color-progress-bg: #3c5aa7;
-}
-
-body.pastel4 {
-  --color-bg: #fff8e6;
-  --color-text: #73680f;
-  --color-progress: #f1d88b;
-  --color-progress-bg: #a59425;
-}
-
-body.pastel5 {
-  --color-bg: #f3e6ff;
-  --color-text: #422a66;
-  --color-progress: #b08fff;
-  --color-progress-bg: #7a5bbf;
-}
-
-body.pastel6 {
-  --color-bg: #fff0e6;
-  --color-text: #6d422a;
-  --color-progress: #f3b891;
-  --color-progress-bg: #a85e33;
-}
-
-body.white {
-  --color-bg: #fff;
-  --color-text: #000;
-  --color-progress: #1976d2;
-  --color-progress-bg: #90caf9;
-}
-
-body.dark {
-  --color-bg: #111;
-  --color-text: #eee;
-  --color-progress: #00ffcc;
-  --color-progress-bg: #004d40;
-}
-
-/* Modal para importar */
-
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 999;
-  left: 0; top: 0; right: 0; bottom: 0;
-  background-color: rgba(0,0,0,0.75);
-  justify-content: center;
-  align-items: center;
-}
-
-.modal[aria-hidden="false"] {
-  display: flex;
-}
-
-.modal-content {
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  padding: 20px;
-  border-radius: 10px;
-  width: 400px;
-  max-width: 90%;
-  box-shadow: 0 0 12px var(--color-progress);
-  font-family: monospace;
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-content h2 {
-  margin: 0 0 12px 0;
-  font-weight: 700;
-  font-size: 20px;
-}
-
-#import-textarea {
-  height: 150px;
-  font-size: 14px;
-  background: var(--color-bg);
-  color: var(--color-text);
-  border: 1px solid #555;
-  border-radius: 6px;
-  padding: 8px;
-  font-family: monospace;
-  resize: vertical;
-}
-
-.modal-buttons {
-  margin-top: 15px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-.modal-buttons button {
-  cursor: pointer;
-  background: var(--color-progress);
-  border: none;
-  border-radius: 6px;
-  color: #000;
-  padding: 8px 14px;
-  font-weight: 700;
-  transition: background-color 0.3s;
-}
-
-.modal-buttons button:hover {
-  background: #00bfa5;
-}
-
+createSectionElements();
+startPlayer();
+togglePause(); // começa pausado
